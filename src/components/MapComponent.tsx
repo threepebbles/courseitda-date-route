@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import { Icon, LatLngTuple } from 'leaflet';
+import { AlertTriangle } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import type { Place } from '@/pages/Index';
 
