@@ -1,73 +1,13 @@
-# Welcome to your Lovable project
+# 코스잇다
 
-## Project info
+[프로토타입 앱](https://courseitda-date-route.lovable.app)
 
-**URL**: https://lovable.dev/projects/276f61ef-9b56-475a-b022-6f9528e015a5
 
-## How can I edit this code?
+### 페르소나
 
-There are several ways of editing your application.
+| 사용자 | 페르소나                                                                                                                                                                                                                                                                                                                      |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 직장인 | **이름**: 김민수  <br>**나이**: 31세 <br>**목표**: 정해진 지점들을 따라 여자친구와 이동할 동선을 지도가 그려진 앱에서 확인하고 싶다.<br>**니즈**<br>  - 실시간 내 위치를 지도에서 확인할 수 있어야 한다.<br>  - 현재 위치에서 다음 장소까지의 최적 경로가 명확히 안내되었으면 한다.<br>  - 중간에 예기치 않게 동선에서 벗어나더라도, 현재 위치 기준으로 다음 목적지까지의 경로가 자동으로 다시 안내되었으면 좋겠다.<br>  - 코스가 마음에 들었다면 나중에 이 코스를 아카이빙해놓고 다시 재실행할 수 있었으면 좋겠다. |
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/276f61ef-9b56-475a-b022-6f9528e015a5) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/276f61ef-9b56-475a-b022-6f9528e015a5) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### 사용자 시나리오
+- 시나리오1: 성수역에 도착한 김민수는 스마트폰에서 '코스잇다' 앱을 실행합니다. 앱의 메인 화면에서 목적 지점들을 방문할 순서대로 입력합니다. 내 위치로부터 첫 목적지까지의 이동 동선, 그 뒤에 사용자가 정의한 목적지 순서대로 이동 동선을 지도에서 확인합니다. 중간에 길거리 음식을 먹고 싶어져서 지도에서 추천해준 최적 동선을 잠깐 벗어납니다. 앱은 실시간으로 김민수의 위치로부터 다음 목적지까지의 최적 동선을 다시 추천해줍니다. 데이트를 마친 후, 이 코스가 너무 마음에 들어 다른 친구에게 소개 시켜주기 위해 코스를  ‘추억 저장소’에 남깁니다.
