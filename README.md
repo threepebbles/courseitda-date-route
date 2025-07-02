@@ -1,5 +1,5 @@
 # 🗺️ 코스잇다
-[프로토타입 앱](https://courseitda-date-route.lovable.app)
+[프로토타입 앱](https://threepebbles.github.io/courseitda-date-route/)
 
 ## 🤵🏻 페르소나
 ### 1. 김민수(31세, 직장인)
