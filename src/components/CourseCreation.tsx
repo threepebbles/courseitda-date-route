@@ -13,6 +13,7 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from 
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import PlaceCard from '@/components/common/PlaceCard';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface CourseCreationProps {
   onStartNavigation: (course: Course) => void;
@@ -47,6 +48,7 @@ function DraggablePlace({ place, removePlace, id }) {
 
 const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
   const [courseTitle, setCourseTitle] = useState("");
+  const [courseCategory, setCourseCategory] = useState<Course['category']>('date');
   const [places, setPlaces] = useState<Place[]>([]);
   const [newPlaceName, setNewPlaceName] = useState("");
   const [newPlaceDescription, setNewPlaceDescription] = useState("");
@@ -111,7 +113,7 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
       places: places,
       createdAt: new Date(),
       completed: false,
-      category: 'tour',
+      category: courseCategory,
       tags: [],
       isPublic: true
     };
@@ -167,6 +169,23 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
             onChange={(e) => setCourseTitle(e.target.value)}
             className="border-blue-200 focus:border-blue-400"
           />
+          <div className="mt-4">
+            <Label htmlFor="course-category" className="mb-2 block text-sm font-medium text-gray-700">
+              코스 카테고리
+            </Label>
+            <Select onValueChange={(value: Course['category']) => setCourseCategory(value)} defaultValue={courseCategory}>
+              <SelectTrigger id="course-category" className="w-full border-blue-200 focus:border-blue-400">
+                <SelectValue placeholder="카테고리를 선택하세요" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">데이트</SelectItem>
+                <SelectItem value="food">맛집</SelectItem>
+                <SelectItem value="tour">관광</SelectItem>
+                <SelectItem value="workshop">워크숍</SelectItem>
+                <SelectItem value="other">기타</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
 

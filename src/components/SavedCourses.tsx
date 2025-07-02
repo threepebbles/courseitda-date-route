@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,7 +56,7 @@ const SavedCourses = ({ onStartNavigation }: SavedCoursesProps) => {
     setShareDialogOpen(true);
   };
 
-  const copyShareLink = () => {
+  const copyShareLink = async () => {
     if (selectedCourse) {
       const categoryInfo = CATEGORIES.find(cat => cat.key === selectedCourse.category);
       const shareData = {
@@ -70,11 +69,20 @@ const SavedCourses = ({ onStartNavigation }: SavedCoursesProps) => {
       
       const shareText = `🧭 ${shareData.title} 🧭\n\n📂 카테고리: ${shareData.category}\n📍 경로: ${shareData.places}\n📅 날짜: ${shareData.date}${shareData.tags ? '\n🏷️ 태그: ' + shareData.tags : ''}\n\n✨ 코스잇다에서 만든 특별한 코스예요!\n함께 탐방해보시는 건 어떨까요? 🚀`;
       
-      navigator.clipboard.writeText(shareText);
-      toast({
-        title: "🔗 클립보드에 복사 완료!",
-        description: "소중한 사람과 함께 공유해보세요.",
-      });
+      try {
+        await navigator.clipboard.writeText(shareText);
+        toast({
+          title: "🔗 클립보드에 복사 완료!",
+          description: "소중한 사람과 함께 공유해보세요.",
+        });
+      } catch (err) {
+        console.error('클립보드 복사 실패:', err);
+        toast({
+          title: "❌ 클립보드 복사 실패",
+          description: "클립보드 복사에 실패했습니다. 수동으로 복사해주세요.",
+          variant: "destructive",
+        });
+      }
       setShareDialogOpen(false);
     }
   };

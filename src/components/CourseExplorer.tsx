@@ -19,6 +19,7 @@ const CATEGORIES = [
   { key: 'food', label: '맛집', emoji: '🍽️' },
   { key: 'tour', label: '관광', emoji: '🗺️' },
   { key: 'workshop', label: '워크숍', emoji: '🎓' },
+  { key: 'other', label: '기타', emoji: '💡' },
 ];
 
 interface CourseExplorerProps {
@@ -143,8 +144,12 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
     };
 
     course.places.forEach(place => {
-      if (place.activityCategory) {
-        activityCount[place.activityCategory.main]++;
+      if (place.activityCategory && place.activityCategory.main) {
+        place.activityCategory.main.forEach(activity => {
+          if (activity in activityCount) {
+            activityCount[activity]++;
+          }
+        });
       }
     });
 
