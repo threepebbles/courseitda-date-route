@@ -79,6 +79,5 @@ npm run dev
 
 #  🚀 배포 방법
 ```shell
-npm run build
 npm run deploy
 ```
