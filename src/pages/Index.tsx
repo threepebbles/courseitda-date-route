@@ -373,7 +373,7 @@ const Index = () => {
         <div className="text-center mb-8 pt-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Compass className="h-8 w-8 text-blue-500" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent font-heading">
               코스잇다
             </h1>
             <Compass className="h-8 w-8 text-blue-500" />

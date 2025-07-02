@@ -12,6 +12,7 @@ import { ACTIVITY_CATEGORIES, RECOMMENDED_PLACES } from "@/pages/Index";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import PlaceCard from '@/components/common/PlaceCard';
 
 interface CourseCreationProps {
   onStartNavigation: (course: Course) => void;
@@ -31,36 +32,16 @@ function DraggablePlace({ place, removePlace, id }) {
     transition,
   };
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <div className={`flex items-center justify-between p-3 bg-blue-50 rounded-md border border-blue-200 ${isDragging ? 'opacity-50' : ''}`}>
-        <div className="flex items-center gap-3">
-          <span className="text-xl">{place.emoji}</span>
-          <div>
-            <div className="font-medium">{place.name}</div>
-            <div className="text-sm text-gray-600">{place.description}</div>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {place.activityCategory.main.map((cat) => (
-                <Badge
-                  key={cat}
-                  variant="outline"
-                  className={`${ACTIVITY_CATEGORIES[cat].color}`}
-                >
-                  {ACTIVITY_CATEGORIES[cat].emoji} {ACTIVITY_CATEGORIES[cat].label}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => removePlace(place.id)}
-          className="text-red-500 hover:bg-red-100"
-        >
-          삭제
-        </Button>
-      </div>
-    </div>
+    <PlaceCard
+      place={place}
+      onRemove={removePlace}
+      isRemovable={true}
+      ref={setNodeRef}
+      style={style}
+      attributes={attributes}
+      listeners={listeners}
+      isDragging={isDragging}
+    />
   );
 }
 
@@ -217,28 +198,11 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
               <Label className="text-sm text-gray-600 mb-2 block">추천 장소</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {RECOMMENDED_PLACES.slice(0, 6).map((place) => (
-                  <Card 
+                  <PlaceCard 
                     key={place.id} 
-                    className="p-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                    onClick={() => addPlace(place)}
-                  >
-                    <span className="text-xl">{place.emoji}</span>
-                    <div>
-                      <div className="font-medium">{place.name}</div>
-                      <div className="text-xs text-gray-500 line-clamp-1">{place.description}</div>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {place.activityCategory.main.map((cat) => (
-                          <Badge
-                            key={cat}
-                            variant="outline"
-                            className={`${ACTIVITY_CATEGORIES[cat].color}`}
-                          >
-                            {ACTIVITY_CATEGORIES[cat].emoji} {ACTIVITY_CATEGORIES[cat].label}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </Card>
+                    place={place} 
+                    onClick={addPlace}
+                  />
                 ))}
               </div>
             </div>
@@ -249,28 +213,11 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
               {searchResults.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {searchResults.map((place) => (
-                    <Card 
+                    <PlaceCard 
                       key={place.id} 
-                      className="p-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => addPlace(place)}
-                    >
-                      <span className="text-xl">{place.emoji}</span>
-                      <div>
-                        <div className="font-medium">{place.name}</div>
-                        <div className="text-xs text-gray-500 line-clamp-1">{place.description}</div>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {place.activityCategory.main.map((cat) => (
-                            <Badge
-                              key={cat}
-                              variant="outline"
-                              className={`${ACTIVITY_CATEGORIES[cat].color}`}
-                            >
-                              {ACTIVITY_CATEGORIES[cat].emoji} {ACTIVITY_CATEGORIES[cat].label}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </Card>
+                      place={place} 
+                      onClick={addPlace}
+                    />
                   ))}
                 </div>
               ) : (
