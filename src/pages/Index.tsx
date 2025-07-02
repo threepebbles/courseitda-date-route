@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +22,6 @@ export interface Place {
   category: string;
   activityCategory: {
     main: 'eating' | 'viewing' | 'playing' | 'walking';
-    sub: string;
   };
 }
 
@@ -44,30 +42,79 @@ export interface Course {
 // 활동 카테고리 정의
 export const ACTIVITY_CATEGORIES = {
   eating: {
-    label: '먹는 활동',
+    label: '먹기',
     emoji: '🍽️',
     color: 'bg-red-100 text-red-700 border-red-300',
-    subcategories: ['밥', '술', '커피', '디저트']
   },
   viewing: {
-    label: '보는 활동', 
+    label: '보기', 
     emoji: '🎬',
     color: 'bg-purple-100 text-purple-700 border-purple-300',
-    subcategories: ['영화', '전시', '공연', '쇼핑']
   },
   playing: {
-    label: '노는 활동',
+    label: '놀기',
     emoji: '🕹️', 
     color: 'bg-green-100 text-green-700 border-green-300',
-    subcategories: ['게임', '방탈출', '실내활동', '실외활동', '힐링']
   },
   walking: {
-    label: '걷기 활동',
+    label: '걷기',
     emoji: '🚶',
     color: 'bg-blue-100 text-blue-700 border-blue-300', 
-    subcategories: ['공원', '테마거리', '야경/풍경', '문화재']
   }
 };
+
+export const RECOMMENDED_PLACES: Place[] = [
+  {
+    id: 'rec-1',
+    name: '남산타워',
+    description: '서울의 랜드마크, 아름다운 야경과 함께하는 데이트 코스',
+    lat: 37.5511,
+    lng: 126.9882,
+    emoji: '🗼',
+    category: '관광',
+    activityCategory: { main: 'viewing' },
+  },
+  {
+    id: 'rec-2',
+    name: '경복궁',
+    description: '조선 왕조의 법궁, 고궁의 아름다움을 느낄 수 있는 역사적인 장소',
+    lat: 37.5796,
+    lng: 126.9770,
+    emoji: '🏯',
+    category: '역사',
+    activityCategory: { main: 'viewing' },
+  },
+  {
+    id: 'rec-3',
+    name: '홍대',
+    description: '젊음과 예술의 거리, 다양한 맛집과 카페, 즐길 거리가 가득한 곳',
+    lat: 37.5577,
+    lng: 126.9248,
+    emoji: '🎶',
+    category: '상업',
+    activityCategory: { main: 'playing' },
+  },
+  {
+    id: 'rec-4',
+    name: '여의도 한강공원',
+    description: '도심 속 힐링 공간, 피크닉과 산책을 즐기기 좋은 곳',
+    lat: 37.5283,
+    lng: 126.9327,
+    emoji: '🌳',
+    category: '자연',
+    activityCategory: { main: 'walking' },
+  },
+  {
+    id: 'rec-5',
+    name: '명동',
+    description: '쇼핑과 미식의 천국, 활기찬 분위기에서 다양한 경험을 할 수 있는 곳',
+    lat: 37.5636,
+    lng: 126.9821,
+    emoji: '🛍️',
+    category: '상업',
+    activityCategory: { main: 'eating' },
+  },
+];
 
 const Index = () => {
   const [currentTab, setCurrentTab] = useState("create");
