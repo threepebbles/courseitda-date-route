@@ -14,9 +14,36 @@ const RECOMMENDED_COURSES: Course[] = [
     id: "rec-1",
     title: "성수동 힙한 데이트 코스",
     places: [
-      { id: "1", name: "성수연방", description: "트렌디한 복합문화공간", lat: 37.5459, lng: 127.0557, emoji: "🎨", category: "카페" },
-      { id: "2", name: "언더스탠드에비뉴", description: "개성 넘치는 편집샵", lat: 37.5463, lng: 127.0543, emoji: "👕", category: "쇼핑" },
-      { id: "3", name: "성수 뚝방", description: "한강 야경 감상", lat: 37.5476, lng: 127.0594, emoji: "🌉", category: "야경" },
+      { 
+        id: "1", 
+        name: "성수연방", 
+        description: "트렌디한 복합문화공간", 
+        lat: 37.5459, 
+        lng: 127.0557, 
+        emoji: "🎨", 
+        category: "카페",
+        activityCategory: { main: 'viewing', sub: '전시' }
+      },
+      { 
+        id: "2", 
+        name: "언더스탠드에비뉴", 
+        description: "개성 넘치는 편집샵", 
+        lat: 37.5463, 
+        lng: 127.0543, 
+        emoji: "👕", 
+        category: "쇼핑",
+        activityCategory: { main: 'viewing', sub: '쇼핑' }
+      },
+      { 
+        id: "3", 
+        name: "성수 뚝방", 
+        description: "한강 야경 감상", 
+        lat: 37.5476, 
+        lng: 127.0594, 
+        emoji: "🌉", 
+        category: "야경",
+        activityCategory: { main: 'walking', sub: '야경/풍경' }
+      },
     ],
     createdAt: new Date('2024-01-15'),
     completed: true,
@@ -28,9 +55,36 @@ const RECOMMENDED_COURSES: Course[] = [
     id: "rec-2",
     title: "홍대 맛집 탐방 코스",
     places: [
-      { id: "4", name: "연트럴파크", description: "유명한 파스타 맛집", lat: 37.5547, lng: 126.9236, emoji: "🍝", category: "이탈리안" },
-      { id: "5", name: "망원한강공원", description: "치킨과 맥주 한 잔", lat: 37.5538, lng: 126.8944, emoji: "🍗", category: "치킨" },
-      { id: "6", name: "홍대 놀이터", description: "야식과 함께하는 밤", lat: 37.5547, lng: 126.9236, emoji: "🌃", category: "야식" },
+      { 
+        id: "4", 
+        name: "연트럴파크", 
+        description: "유명한 파스타 맛집", 
+        lat: 37.5547, 
+        lng: 126.9236, 
+        emoji: "🍝", 
+        category: "이탈리안",
+        activityCategory: { main: 'eating', sub: '밥' }
+      },
+      { 
+        id: "5", 
+        name: "망원한강공원", 
+        description: "치킨과 맥주 한 잔", 
+        lat: 37.5538, 
+        lng: 126.8944, 
+        emoji: "🍗", 
+        category: "치킨",
+        activityCategory: { main: 'eating', sub: '술' }
+      },
+      { 
+        id: "6", 
+        name: "홍대 놀이터", 
+        description: "야식과 함께하는 밤", 
+        lat: 37.5547, 
+        lng: 126.9236, 
+        emoji: "🌃", 
+        category: "야식",
+        activityCategory: { main: 'eating', sub: '밥' }
+      },
     ],
     createdAt: new Date('2024-01-20'),
     completed: true,
@@ -42,9 +96,36 @@ const RECOMMENDED_COURSES: Course[] = [
     id: "rec-3",
     title: "북촌한옥마을 문화 탐방",
     places: [
-      { id: "7", name: "북촌한옥마을", description: "전통 한옥의 아름다움", lat: 37.5824, lng: 126.9834, emoji: "🏘️", category: "문화" },
-      { id: "8", name: "인사동 쌈지길", description: "전통 공예품 구경", lat: 37.5759, lng: 126.9835, emoji: "🎎", category: "쇼핑" },
-      { id: "9", name: "창덕궁", description: "조선 왕조의 별궁", lat: 37.5794, lng: 126.9910, emoji: "🏯", category: "궁궐" },
+      { 
+        id: "7", 
+        name: "북촌한옥마을", 
+        description: "전통 한옥의 아름다움", 
+        lat: 37.5824, 
+        lng: 126.9834, 
+        emoji: "🏘️", 
+        category: "문화",
+        activityCategory: { main: 'walking', sub: '문화재' }
+      },
+      { 
+        id: "8", 
+        name: "인사동 쌈지길", 
+        description: "전통 공예품 구경", 
+        lat: 37.5759, 
+        lng: 126.9835, 
+        emoji: "🎎", 
+        category: "쇼핑",
+        activityCategory: { main: 'viewing', sub: '쇼핑' }
+      },
+      { 
+        id: "9", 
+        name: "창덕궁", 
+        description: "조선 왕조의 별궁", 
+        lat: 37.5794, 
+        lng: 126.9910, 
+        emoji: "🏯", 
+        category: "궁궐",
+        activityCategory: { main: 'walking', sub: '문화재' }
+      },
     ],
     createdAt: new Date('2024-01-25'),
     completed: true,
@@ -75,7 +156,7 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
   useEffect(() => {
     // Load favorited courses from localStorage
     const favorites = JSON.parse(localStorage.getItem('favoriteCourses') || '[]');
-    const favoriteIds = new Set(favorites.map((course: Course) => course.id));
+    const favoriteIds = new Set<string>(favorites.map((course: Course) => course.id));
     setFavoritedCourses(favoriteIds);
   }, []);
 
