@@ -4,136 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, MapPin, Heart, Play, Users, Clock, Bookmark } from "lucide-react";
-import type { Course } from "@/pages/Index";
-import { ACTIVITY_CATEGORIES } from "@/pages/Index";
+import type { Course, Place } from "@/pages/Index";
+import { ACTIVITY_CATEGORIES, RECOMMENDED_PLACES } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
 
-// 추천 코스 데이터 (실제로는 API에서 가져올 데이터)
-const RECOMMENDED_COURSES: Course[] = [
-  {
-    id: "rec-1",
-    title: "성수동 힙한 데이트 코스",
-    places: [
-      { 
-        id: "1", 
-        name: "성수연방", 
-        description: "트렌디한 복합문화공간", 
-        lat: 37.5459, 
-        lng: 127.0557, 
-        emoji: "🎨", 
-        category: "카페",
-        activityCategory: { main: 'viewing', sub: '전시' }
-      },
-      { 
-        id: "2", 
-        name: "언더스탠드에비뉴", 
-        description: "개성 넘치는 편집샵", 
-        lat: 37.5463, 
-        lng: 127.0543, 
-        emoji: "👕", 
-        category: "쇼핑",
-        activityCategory: { main: 'viewing', sub: '쇼핑' }
-      },
-      { 
-        id: "3", 
-        name: "성수 뚝방", 
-        description: "한강 야경 감상", 
-        lat: 37.5476, 
-        lng: 127.0594, 
-        emoji: "🌉", 
-        category: "야경",
-        activityCategory: { main: 'walking', sub: '야경/풍경' }
-      },
-    ],
-    createdAt: new Date('2024-01-15'),
-    completed: true,
-    category: 'date',
-    tags: ['힙한', '성수동', '야경', '데이트'],
-    isPublic: true
-  },
-  {
-    id: "rec-2",
-    title: "홍대 맛집 탐방 코스",
-    places: [
-      { 
-        id: "4", 
-        name: "연트럴파크", 
-        description: "유명한 파스타 맛집", 
-        lat: 37.5547, 
-        lng: 126.9236, 
-        emoji: "🍝", 
-        category: "이탈리안",
-        activityCategory: { main: 'eating', sub: '밥' }
-      },
-      { 
-        id: "5", 
-        name: "망원한강공원", 
-        description: "치킨과 맥주 한 잔", 
-        lat: 37.5538, 
-        lng: 126.8944, 
-        emoji: "🍗", 
-        category: "치킨",
-        activityCategory: { main: 'eating', sub: '술' }
-      },
-      { 
-        id: "6", 
-        name: "홍대 놀이터", 
-        description: "야식과 함께하는 밤", 
-        lat: 37.5547, 
-        lng: 126.9236, 
-        emoji: "🌃", 
-        category: "야식",
-        activityCategory: { main: 'eating', sub: '밥' }
-      },
-    ],
-    createdAt: new Date('2024-01-20'),
-    completed: true,
-    category: 'food',
-    tags: ['맛집', '홍대', '파티', '친구'],
-    isPublic: true
-  },
-  {
-    id: "rec-3",
-    title: "북촌한옥마을 문화 탐방",
-    places: [
-      { 
-        id: "7", 
-        name: "북촌한옥마을", 
-        description: "전통 한옥의 아름다움", 
-        lat: 37.5824, 
-        lng: 126.9834, 
-        emoji: "🏘️", 
-        category: "문화",
-        activityCategory: { main: 'walking', sub: '문화재' }
-      },
-      { 
-        id: "8", 
-        name: "인사동 쌈지길", 
-        description: "전통 공예품 구경", 
-        lat: 37.5759, 
-        lng: 126.9835, 
-        emoji: "🎎", 
-        category: "쇼핑",
-        activityCategory: { main: 'viewing', sub: '쇼핑' }
-      },
-      { 
-        id: "9", 
-        name: "창덕궁", 
-        description: "조선 왕조의 별궁", 
-        lat: 37.5794, 
-        lng: 126.9910, 
-        emoji: "🏯", 
-        category: "궁궐",
-        activityCategory: { main: 'walking', sub: '문화재' }
-      },
-    ],
-    createdAt: new Date('2024-01-25'),
-    completed: true,
-    category: 'tour',
-    tags: ['문화', '전통', '한옥', '관광'],
-    isPublic: true
-  }
-];
+// Helper to get place by name (or id) from RECOMMENDED_PLACES
+function getPlaceByName(name: string) {
+  return RECOMMENDED_PLACES.find(p => p.name === name);
+}
 
 const CATEGORIES = [
   { key: 'all', label: '전체', emoji: '🌟' },
@@ -150,7 +28,50 @@ interface CourseExplorerProps {
 const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [courses, setCourses] = useState<Course[]>(RECOMMENDED_COURSES);
+  const [courses, setCourses] = useState<Course[]>([
+    {
+      id: "rec-1",
+      title: "성수동 힙한 데이트 코스",
+      places: [
+        getPlaceByName('팀랩 몰입형 미디어아트 전시관'),
+        getPlaceByName('젠틀몬스터 플래그십스토어 가로수길'),
+        getPlaceByName('블루보틀 삼청점'),
+      ].filter(Boolean) as Place[],
+      createdAt: new Date('2024-01-15'),
+      completed: true,
+      category: 'date',
+      tags: ['힙한', '성수동', '야경', '데이트'],
+      isPublic: true
+    },
+    {
+      id: "rec-2",
+      title: "홍대 맛집 탐방 코스",
+      places: [
+        getPlaceByName('쉐이크쉑 강남점'),
+        getPlaceByName('스타벅스 더종로점'),
+        getPlaceByName('방탈출 카페 코드케이 강남점'),
+      ].filter(Boolean) as Place[],
+      createdAt: new Date('2024-01-20'),
+      completed: true,
+      category: 'food',
+      tags: ['맛집', '홍대', '파티', '친구'],
+      isPublic: true
+    },
+    {
+      id: "rec-3",
+      title: "북촌한옥마을 문화 탐방",
+      places: [
+        getPlaceByName('국립현대미술관 서울관'),
+        getPlaceByName('아크앤북 시청점'),
+        getPlaceByName('호텔 델루나 세트장 (익선동)'),
+      ].filter(Boolean) as Place[],
+      createdAt: new Date('2024-01-25'),
+      completed: true,
+      category: 'tour',
+      tags: ['문화', '전통', '한옥', '관광'],
+      isPublic: true
+    }
+  ]);
   const [favoritedCourses, setFavoritedCourses] = useState<Set<string>>(new Set());
 
   useEffect(() => {
