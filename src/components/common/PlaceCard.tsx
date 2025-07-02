@@ -1,8 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Place } from "@/pages/Index";
-import { ACTIVITY_CATEGORIES } from "@/pages/Index";
+import { Place, ACTIVITY_CATEGORIES } from "@/lib/data";
 import { X } from "lucide-react";
 import React from 'react';
 

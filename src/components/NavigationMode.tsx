@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, CheckCircle, AlertTriangle, MapPin, SkipForward, Edit3 } from "lucide-react";
-import type { Course } from "@/pages/Index";
+import { Course, ACTIVITY_CATEGORIES } from "@/lib/data";
 import { toast } from "@/hooks/use-toast";
 import MapComponent from "./MapComponent";
 

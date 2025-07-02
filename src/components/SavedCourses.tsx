@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MapPin, Calendar, Share, Play, Trash2, Clock, Users } from "lucide-react";
-import type { Course } from "@/pages/Index";
+import { Course, ACTIVITY_CATEGORIES, Place } from "@/lib/data";
 import { toast } from "@/hooks/use-toast";
 import {
   Dialog,

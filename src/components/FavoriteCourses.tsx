@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,8 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Heart, MapPin, Calendar, Play, Trash2, Edit, Copy, Bookmark } from "lucide-react";
-import type { Course } from "@/pages/Index";
-import { ACTIVITY_CATEGORIES } from "@/pages/Index";
+import { Course, ACTIVITY_CATEGORIES } from "@/lib/data";
 import { toast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -100,12 +98,17 @@ const FavoriteCourses = ({ onStartNavigation }: FavoriteCoursesProps) => {
       eating: 0,
       viewing: 0,
       playing: 0,
-      walking: 0
+      walking: 0,
+      shopping: 0,
     };
 
     course.places.forEach(place => {
-      if (place.activityCategory) {
-        activityCount[place.activityCategory.main]++;
+      if (place.activityCategory && place.activityCategory.main) {
+        place.activityCategory.main.forEach(activity => {
+          if (activity in activityCount) {
+            activityCount[activity]++;
+          }
+        });
       }
     });
 
@@ -249,76 +252,48 @@ const FavoriteCourses = ({ onStartNavigation }: FavoriteCoursesProps) => {
 
                 {/* 개인 메모 */}
                 {course.memo && (
-                  <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
-                    <div className="text-sm font-medium text-yellow-800 mb-1">💭 나의 메모</div>
-                    <div className="text-sm text-yellow-700 italic">
-                      "{course.memo}"
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      <Bookmark className="h-4 w-4 text-gray-500" />
+                      나의 메모
                     </div>
+                    <p className="text-gray-700 text-sm whitespace-pre-wrap">{course.memo}</p>
                   </div>
                 )}
-
-                {/* 태그 */}
-                {course.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {course.tags.map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs bg-gray-100 text-gray-600">
-                        #{tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-
-                {/* 액션 버튼 */}
-                <Button
-                  onClick={() => onStartNavigation({...course, id: Date.now().toString()})}
-                  className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-medium"
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  찜한 코스 탐방하기 💕
-                </Button>
               </div>
             </CardContent>
+            <div className="px-6 pb-4 flex justify-end">
+              <Button
+                onClick={() => onStartNavigation(course)}
+                className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                이 코스로 탐방 시작
+              </Button>
+            </div>
+
+            <Dialog open={memoDialogOpen} onOpenChange={setMemoDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>메모 수정하기</DialogTitle>
+                  <DialogDescription>
+                    코스에 대한 개인적인 메모를 자유롭게 작성해주세요.
+                  </DialogDescription>
+                </DialogHeader>
+                <Textarea
+                  value={memoText}
+                  onChange={(e) => setMemoText(e.target.value)}
+                  placeholder="코스에 대한 메모를 작성하세요..."
+                  rows={5}
+                />
+                <Button onClick={() => editingMemo && updateMemo(editingMemo, memoText)}>
+                  메모 저장
+                </Button>
+              </DialogContent>
+            </Dialog>
           </Card>
         );
       })}
-
-      {/* 메모 수정 다이얼로그 */}
-      <Dialog open={memoDialogOpen} onOpenChange={setMemoDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-blue-700">
-              <Edit className="h-5 w-5" />
-              💭 찜한 이유 메모하기
-            </DialogTitle>
-            <DialogDescription>
-              이 코스를 찜한 이유나 계획을 적어보세요!
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Textarea
-              placeholder="예: 친구 추천용, 다음 주말 가기, 특별한 날에 가고 싶어서..."
-              value={memoText}
-              onChange={(e) => setMemoText(e.target.value)}
-              className="min-h-20 border-blue-200 focus:border-blue-400"
-            />
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => editingMemo && updateMemo(editingMemo, memoText)} 
-                className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
-              >
-                💾 저장하기
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setMemoDialogOpen(false)}
-                className="border-blue-300 text-blue-700 hover:bg-blue-50"
-              >
-                취소
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

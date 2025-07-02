@@ -4,8 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, MapPin, Heart, Play, Users, Clock, Bookmark, Calendar, Save } from "lucide-react";
-import type { Course, Place } from "@/pages/Index";
-import { ACTIVITY_CATEGORIES, RECOMMENDED_PLACES } from "@/pages/Index";
+import { Course, Place, ACTIVITY_CATEGORIES, RECOMMENDED_PLACES } from "@/lib/data";
 import { toast } from "@/hooks/use-toast";
 
 // Helper to get place by name (or id) from RECOMMENDED_PLACES

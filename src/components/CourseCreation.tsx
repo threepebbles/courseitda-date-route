@@ -6,9 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, MapPin, Navigation, Search } from "lucide-react";
-import type { Place, Course } from "@/pages/Index";
+import { Place, Course, ACTIVITY_CATEGORIES, RECOMMENDED_PLACES } from "@/lib/data";
 import { toast } from "@/hooks/use-toast";
-import { ACTIVITY_CATEGORIES, RECOMMENDED_PLACES } from "@/pages/Index";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';

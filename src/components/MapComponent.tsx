@@ -1,7 +1,6 @@
-
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
-import type { Place } from '@/pages/Index';
+import type { Place } from '@/lib/data';
 
 // Leaflet 아이콘 설정
 const defaultIcon = L.icon({
