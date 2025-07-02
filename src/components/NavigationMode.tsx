@@ -3,9 +3,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { MapPin, Navigation, ArrowLeft, CheckCircle, AlertTriangle } from "lucide-react";
+import { ArrowLeft, CheckCircle, AlertTriangle, MapPin } from "lucide-react";
 import type { Course } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
+import MapComponent from "./MapComponent";
 
 interface NavigationModeProps {
   course: Course;
@@ -17,6 +18,7 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
   const [currentPlaceIndex, setCurrentPlaceIndex] = useState(0);
   const [isOffRoute, setIsOffRoute] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [currentLocation, setCurrentLocation] = useState({ lat: 37.5665, lng: 126.9780 }); // 서울 중심부
 
   const currentPlace = course.places[currentPlaceIndex];
   const nextPlace = course.places[currentPlaceIndex + 1];
@@ -26,14 +28,32 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
     setProgress((currentPlaceIndex / course.places.length) * 100);
   }, [currentPlaceIndex, course.places.length]);
 
+  // 첫 번째 장소 근처로 현재 위치 설정
+  useEffect(() => {
+    if (course.places.length > 0) {
+      const firstPlace = course.places[0];
+      // 첫 번째 장소에서 약간 떨어진 곳으로 설정
+      setCurrentLocation({
+        lat: firstPlace.lat - 0.005,
+        lng: firstPlace.lng - 0.005
+      });
+    }
+  }, [course.places]);
+
   const handleArrived = () => {
     if (isLastPlace) {
       toast({
-        title: "🎉 모든 코스 완주!",
-        description: "정말 수고하셨어요! 소중한 추억을 만드셨네요.",
+        title: "🎉 모든 코스 완주 완료!",
+        description: "정말 수고하셨어요! 추억 한 조각이 완성되었습니다 ✨",
       });
       onComplete();
     } else {
+      // 다음 장소로 현재 위치 이동 (도착 시뮬레이션)
+      setCurrentLocation({
+        lat: currentPlace.lat,
+        lng: currentPlace.lng
+      });
+      
       setCurrentPlaceIndex(currentPlaceIndex + 1);
       toast({
         title: "✨ 도착 완료!",
@@ -44,67 +64,53 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
 
   const handleOffRoute = () => {
     setIsOffRoute(true);
+    // 랜덤한 위치로 이동 (경로 이탈 시뮬레이션)
+    const randomOffset = {
+      lat: (Math.random() - 0.5) * 0.01,
+      lng: (Math.random() - 0.5) * 0.01
+    };
+    setCurrentLocation({
+      lat: currentLocation.lat + randomOffset.lat,
+      lng: currentLocation.lng + randomOffset.lng
+    });
+    
     toast({
-      title: "🔄 경로 재안내",
+      title: "🔄 경로 이탈 감지",
       description: "괜찮아요! 새로운 경로로 안내해드릴게요.",
     });
     
     // 3초 후 자동으로 경로 복구
     setTimeout(() => {
       setIsOffRoute(false);
+      toast({
+        title: "✅ 새로운 경로 안내",
+        description: "최적 경로로 다시 안내를 시작합니다.",
+      });
     }, 3000);
   };
 
-  // 모의 지도 컴포넌트
-  const MockMap = () => (
-    <div className="relative h-64 bg-gradient-to-br from-blue-100 to-green-100 rounded-lg overflow-hidden">
-      {/* 지도 배경 패턴 */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="grid grid-cols-8 grid-rows-8 h-full">
-          {Array.from({ length: 64 }).map((_, i) => (
-            <div key={i} className="border border-gray-400"></div>
-          ))}
-        </div>
-      </div>
-      
-      {/* 현재 위치 */}
-      <div className="absolute top-1/2 left-1/3 transform -translate-x-1/2 -translate-y-1/2">
-        <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
-        <div className="text-xs text-blue-700 font-bold mt-1">현재 위치</div>
-      </div>
-      
-      {/* 목적지 */}
-      <div className="absolute top-1/3 right-1/4 transform translate-x-1/2 -translate-y-1/2">
-        <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-          <MapPin className="h-3 w-3 text-white" />
-        </div>
-        <div className="text-xs text-red-700 font-bold mt-1 whitespace-nowrap">
-          {nextPlace ? nextPlace.name : currentPlace.name}
-        </div>
-      </div>
-      
-      {/* 경로 선 */}
-      <svg className="absolute inset-0 w-full h-full">
-        <path
-          d={`M ${100} ${128} Q ${150} ${80} ${220} ${85}`}
-          stroke={isOffRoute ? "#f59e0b" : "#3b82f6"}
-          strokeWidth="3"
-          fill="none"
-          strokeDasharray={isOffRoute ? "5,5" : "none"}
-          className="animate-pulse"
-        />
-      </svg>
-      
-      {isOffRoute && (
-        <div className="absolute top-2 left-2 bg-yellow-100 border border-yellow-300 rounded-lg p-2">
-          <div className="flex items-center gap-1 text-yellow-700 text-sm">
-            <AlertTriangle className="h-4 w-4" />
-            경로 재계산 중...
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  const handleLocationUpdate = (newLocation: { lat: number; lng: number }) => {
+    setCurrentLocation(newLocation);
+    toast({
+      title: "📍 위치 업데이트",
+      description: "현재 위치가 갱신되었습니다.",
+    });
+  };
+
+  const goToPlace = (placeIndex: number) => {
+    if (placeIndex < currentPlaceIndex) {
+      setCurrentPlaceIndex(placeIndex);
+      const targetPlace = course.places[placeIndex];
+      setCurrentLocation({
+        lat: targetPlace.lat - 0.003,
+        lng: targetPlace.lng - 0.003
+      });
+      toast({
+        title: "🔄 이전 장소로 이동",
+        description: `${targetPlace.name}부터 다시 시작합니다.`,
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-orange-50 p-4">
@@ -130,8 +136,23 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
 
         {/* 지도 */}
         <Card className="mb-6 bg-white/70 backdrop-blur-sm border-pink-200">
-          <CardContent className="p-4">
-            <MockMap />
+          <CardHeader>
+            <CardTitle className="text-pink-700 flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              실시간 위치 안내
+            </CardTitle>
+            <CardDescription>
+              지도를 클릭하여 위치를 변경할 수 있습니다
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MapComponent 
+              places={course.places}
+              currentPlaceIndex={currentPlaceIndex}
+              currentLocation={currentLocation}
+              isOffRoute={isOffRoute}
+              onLocationUpdate={handleLocationUpdate}
+            />
           </CardContent>
         </Card>
 
@@ -164,9 +185,9 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
               </div>
 
               {!isLastPlace && nextPlace && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Navigation className="h-4 w-4" />
-                  <span>다음: {nextPlace.name}</span>
+                <div className="flex items-center gap-2 text-gray-600 bg-blue-50 p-3 rounded-lg">
+                  <span className="text-blue-500">🚩</span>
+                  <span>다음 목적지: {nextPlace.name}</span>
                 </div>
               )}
             </div>
@@ -199,19 +220,21 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
         <Card className="mt-6 bg-white/70 backdrop-blur-sm border-pink-200">
           <CardHeader>
             <CardTitle className="text-pink-700 text-lg">코스 진행 상황</CardTitle>
+            <CardDescription>이전 장소를 클릭하면 그곳부터 다시 시작할 수 있습니다</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {course.places.map((place, index) => (
                 <div
                   key={place.id}
-                  className={`flex items-center gap-3 p-2 rounded ${
+                  className={`flex items-center gap-3 p-2 rounded cursor-pointer transition-all ${
                     index < currentPlaceIndex
-                      ? 'bg-green-100 text-green-800'
+                      ? 'bg-green-100 text-green-800 hover:bg-green-200'
                       : index === currentPlaceIndex
                       ? 'bg-pink-100 text-pink-800'
                       : 'bg-gray-100 text-gray-600'
                   }`}
+                  onClick={() => goToPlace(index)}
                 >
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${
                     index < currentPlaceIndex
@@ -223,7 +246,10 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
                     {index < currentPlaceIndex ? '✓' : index + 1}
                   </div>
                   <span className="text-lg">{place.emoji}</span>
-                  <span className="font-medium">{place.name}</span>
+                  <span className="font-medium flex-1">{place.name}</span>
+                  {index < currentPlaceIndex && (
+                    <span className="text-xs text-green-600">다시 시작</span>
+                  )}
                 </div>
               ))}
             </div>
