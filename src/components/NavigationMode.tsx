@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, CheckCircle, AlertTriangle, MapPin } from "lucide-react";
+import { ArrowLeft, CheckCircle, AlertTriangle, MapPin, SkipForward, Edit3 } from "lucide-react";
 import type { Course } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
 import MapComponent from "./MapComponent";
@@ -19,26 +19,26 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
   const [isOffRoute, setIsOffRoute] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentLocation, setCurrentLocation] = useState({ lat: 37.5665, lng: 126.9780 }); // 서울 중심부
+  const [activePlaces, setActivePlaces] = useState(course.places); // 활성 장소 목록
 
-  const currentPlace = course.places[currentPlaceIndex];
-  const nextPlace = course.places[currentPlaceIndex + 1];
-  const isLastPlace = currentPlaceIndex === course.places.length - 1;
+  const currentPlace = activePlaces[currentPlaceIndex];
+  const nextPlace = activePlaces[currentPlaceIndex + 1];
+  const isLastPlace = currentPlaceIndex === activePlaces.length - 1;
 
   useEffect(() => {
-    setProgress((currentPlaceIndex / course.places.length) * 100);
-  }, [currentPlaceIndex, course.places.length]);
+    setProgress((currentPlaceIndex / activePlaces.length) * 100);
+  }, [currentPlaceIndex, activePlaces.length]);
 
   // 첫 번째 장소 근처로 현재 위치 설정
   useEffect(() => {
-    if (course.places.length > 0) {
-      const firstPlace = course.places[0];
-      // 첫 번째 장소에서 약간 떨어진 곳으로 설정
+    if (activePlaces.length > 0) {
+      const firstPlace = activePlaces[0];
       setCurrentLocation({
         lat: firstPlace.lat - 0.005,
         lng: firstPlace.lng - 0.005
       });
     }
-  }, [course.places]);
+  }, [activePlaces]);
 
   const handleArrived = () => {
     if (isLastPlace) {
@@ -100,7 +100,7 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
   const goToPlace = (placeIndex: number) => {
     if (placeIndex < currentPlaceIndex) {
       setCurrentPlaceIndex(placeIndex);
-      const targetPlace = course.places[placeIndex];
+      const targetPlace = activePlaces[placeIndex];
       setCurrentLocation({
         lat: targetPlace.lat - 0.003,
         lng: targetPlace.lng - 0.003
@@ -112,32 +112,71 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
     }
   };
 
+  // 현재 장소 건너뛰기
+  const skipCurrentPlace = () => {
+    if (currentPlaceIndex < activePlaces.length - 1) {
+      const skippedPlace = activePlaces[currentPlaceIndex];
+      setCurrentPlaceIndex(currentPlaceIndex + 1);
+      toast({
+        title: "⏭️ 장소 건너뛰기",
+        description: `${skippedPlace.name}을(를) 건너뛰고 다음 장소로 이동합니다.`,
+      });
+    }
+  };
+
+  // 장소 삭제 (코스 조정)
+  const removePlace = (placeIndex: number) => {
+    if (activePlaces.length <= 2) {
+      toast({
+        title: "삭제할 수 없습니다",
+        description: "최소 2개의 장소는 유지되어야 합니다.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newActivePlaces = activePlaces.filter((_, index) => index !== placeIndex);
+    setActivePlaces(newActivePlaces);
+    
+    // 현재 인덱스 조정
+    if (placeIndex <= currentPlaceIndex && currentPlaceIndex > 0) {
+      setCurrentPlaceIndex(currentPlaceIndex - 1);
+    } else if (currentPlaceIndex >= newActivePlaces.length) {
+      setCurrentPlaceIndex(newActivePlaces.length - 1);
+    }
+    
+    toast({
+      title: "🗑️ 장소 삭제 완료",
+      description: `${activePlaces[placeIndex].name}이(가) 코스에서 제거되었습니다.`,
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-orange-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
       <div className="container mx-auto max-w-2xl">
         {/* 헤더 */}
         <div className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
             onClick={onBack}
-            className="text-pink-600 hover:text-pink-800"
+            className="text-blue-600 hover:text-blue-800"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             돌아가기
           </Button>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-pink-700">{course.title}</h1>
+            <h1 className="text-2xl font-bold text-blue-700">{course.title}</h1>
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>{currentPlaceIndex + 1} / {course.places.length}</span>
+              <span>{currentPlaceIndex + 1} / {activePlaces.length}</span>
               <Progress value={progress} className="flex-1 h-2" />
             </div>
           </div>
         </div>
 
         {/* 지도 */}
-        <Card className="mb-6 bg-white/70 backdrop-blur-sm border-pink-200">
+        <Card className="mb-6 bg-white/70 backdrop-blur-sm border-blue-200">
           <CardHeader>
-            <CardTitle className="text-pink-700 flex items-center gap-2">
+            <CardTitle className="text-blue-700 flex items-center gap-2">
               <MapPin className="h-5 w-5" />
               실시간 위치 안내
             </CardTitle>
@@ -147,7 +186,7 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
           </CardHeader>
           <CardContent>
             <MapComponent 
-              places={course.places}
+              places={activePlaces}
               currentPlaceIndex={currentPlaceIndex}
               currentLocation={currentLocation}
               isOffRoute={isOffRoute}
@@ -157,9 +196,9 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
         </Card>
 
         {/* 현재 안내 */}
-        <Card className="mb-6 bg-white/70 backdrop-blur-sm border-pink-200">
+        <Card className="mb-6 bg-white/70 backdrop-blur-sm border-blue-200">
           <CardHeader>
-            <CardTitle className="text-pink-700 flex items-center gap-2">
+            <CardTitle className="text-blue-700 flex items-center gap-2">
               <span className="text-2xl">{currentPlace.emoji}</span>
               {isLastPlace ? '마지막 목적지에요!' : '현재 목적지'}
             </CardTitle>
@@ -172,9 +211,9 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="p-4 bg-gradient-to-r from-pink-100 to-orange-100 rounded-lg">
+              <div className="p-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-pink-500 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                  <div className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-lg">
                     {currentPlaceIndex + 1}
                   </div>
                   <div>
@@ -198,58 +237,93 @@ const NavigationMode = ({ course, onComplete, onBack }: NavigationModeProps) => 
         <div className="space-y-3">
           <Button
             onClick={handleArrived}
-            className="w-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white font-medium py-4"
+            className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium py-4"
             size="lg"
           >
             <CheckCircle className="h-5 w-5 mr-2" />
             {isLastPlace ? '코스 완주하기! 🎉' : '이 장소에 도착했어요!'}
           </Button>
 
-          <Button
-            onClick={handleOffRoute}
-            variant="outline"
-            className="w-full border-orange-300 text-orange-700 hover:bg-orange-50"
-            disabled={isOffRoute}
-          >
-            <AlertTriangle className="h-4 w-4 mr-2" />
-            {isOffRoute ? '경로 재계산 중...' : '길을 잃었어요 (경로 이탈 시뮬레이션)'}
-          </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              onClick={handleOffRoute}
+              variant="outline"
+              className="border-orange-300 text-orange-700 hover:bg-orange-50"
+              disabled={isOffRoute}
+            >
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              {isOffRoute ? '경로 재계산 중...' : '길을 잃었어요'}
+            </Button>
+
+            {!isLastPlace && (
+              <Button
+                onClick={skipCurrentPlace}
+                variant="outline"
+                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+              >
+                <SkipForward className="h-4 w-4 mr-2" />
+                장소 건너뛰기
+              </Button>
+            )}
+          </div>
         </div>
 
-        {/* 코스 진행 상황 */}
-        <Card className="mt-6 bg-white/70 backdrop-blur-sm border-pink-200">
+        {/* 코스 진행 상황 및 조정 */}
+        <Card className="mt-6 bg-white/70 backdrop-blur-sm border-blue-200">
           <CardHeader>
-            <CardTitle className="text-pink-700 text-lg">코스 진행 상황</CardTitle>
-            <CardDescription>이전 장소를 클릭하면 그곳부터 다시 시작할 수 있습니다</CardDescription>
+            <CardTitle className="text-blue-700 text-lg flex items-center gap-2">
+              <Edit3 className="h-5 w-5" />
+              코스 진행 상황 및 조정
+            </CardTitle>
+            <CardDescription>장소를 클릭하여 이동하거나 삭제할 수 있습니다</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {course.places.map((place, index) => (
+              {activePlaces.map((place, index) => (
                 <div
                   key={place.id}
-                  className={`flex items-center gap-3 p-2 rounded cursor-pointer transition-all ${
+                  className={`flex items-center gap-3 p-2 rounded transition-all ${
                     index < currentPlaceIndex
-                      ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                      ? 'bg-green-100 text-green-800'
                       : index === currentPlaceIndex
-                      ? 'bg-pink-100 text-pink-800'
+                      ? 'bg-blue-100 text-blue-800'
                       : 'bg-gray-100 text-gray-600'
                   }`}
-                  onClick={() => goToPlace(index)}
                 >
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${
                     index < currentPlaceIndex
                       ? 'bg-green-500 text-white'
                       : index === currentPlaceIndex
-                      ? 'bg-pink-500 text-white'
+                      ? 'bg-blue-500 text-white'
                       : 'bg-gray-300 text-gray-600'
                   }`}>
                     {index < currentPlaceIndex ? '✓' : index + 1}
                   </div>
                   <span className="text-lg">{place.emoji}</span>
                   <span className="font-medium flex-1">{place.name}</span>
-                  {index < currentPlaceIndex && (
-                    <span className="text-xs text-green-600">다시 시작</span>
-                  )}
+                  
+                  <div className="flex gap-1">
+                    {index < currentPlaceIndex && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => goToPlace(index)}
+                        className="text-xs text-green-600 hover:text-green-700"
+                      >
+                        다시 시작
+                      </Button>
+                    )}
+                    {activePlaces.length > 2 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removePlace(index)}
+                        className="text-xs text-red-500 hover:text-red-700"
+                      >
+                        삭제
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
