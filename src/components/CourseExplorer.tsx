@@ -1,11 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Heart, Play, Users, Clock } from "lucide-react";
+import { Search, MapPin, Heart, Play, Users, Clock, Bookmark } from "lucide-react";
 import type { Course } from "@/pages/Index";
+import { ACTIVITY_CATEGORIES } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
 
 // 추천 코스 데이터 (실제로는 API에서 가져올 데이터)
@@ -70,6 +70,14 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [courses, setCourses] = useState<Course[]>(RECOMMENDED_COURSES);
+  const [favoritedCourses, setFavoritedCourses] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    // Load favorited courses from localStorage
+    const favorites = JSON.parse(localStorage.getItem('favoriteCourses') || '[]');
+    const favoriteIds = new Set(favorites.map((course: Course) => course.id));
+    setFavoritedCourses(favoriteIds);
+  }, []);
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -88,6 +96,65 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
       completed: false
     };
     onStartNavigation(newCourse);
+  };
+
+  const toggleFavorite = (course: Course) => {
+    const favorites = JSON.parse(localStorage.getItem('favoriteCourses') || '[]');
+    const isCurrentlyFavorited = favoritedCourses.has(course.id);
+    
+    if (isCurrentlyFavorited) {
+      // Remove from favorites
+      const updatedFavorites = favorites.filter((fav: Course) => fav.id !== course.id);
+      localStorage.setItem('favoriteCourses', JSON.stringify(updatedFavorites));
+      setFavoritedCourses(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(course.id);
+        return newSet;
+      });
+      toast({
+        title: "💔 찜 해제",
+        description: `${course.title}을(를) 찜 목록에서 제거했습니다.`,
+      });
+    } else {
+      // Add to favorites
+      const courseWithFavoriteInfo = {
+        ...course,
+        isFavorited: true,
+        favoritedAt: new Date()
+      };
+      favorites.push(courseWithFavoriteInfo);
+      localStorage.setItem('favoriteCourses', JSON.stringify(favorites));
+      setFavoritedCourses(prev => new Set([...prev, course.id]));
+      toast({
+        title: "💕 찜 완료!",
+        description: `${course.title}을(를) 찜 목록에 추가했습니다.`,
+      });
+    }
+  };
+
+  const getActivityComposition = (course: Course) => {
+    const activityCount = {
+      eating: 0,
+      viewing: 0,
+      playing: 0,
+      walking: 0
+    };
+
+    course.places.forEach(place => {
+      if (place.activityCategory) {
+        activityCount[place.activityCategory.main]++;
+      }
+    });
+
+    const total = course.places.length;
+    const composition = Object.entries(activityCount)
+      .filter(([_, count]) => count > 0)
+      .map(([activity, count]) => ({
+        activity: activity as keyof typeof ACTIVITY_CATEGORIES,
+        percentage: Math.round((count / total) * 100)
+      }));
+
+    return composition;
   };
 
   return (
@@ -153,83 +220,114 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
             </CardContent>
           </Card>
         ) : (
-          filteredCourses.map((course) => (
-            <Card key={course.id} className="bg-white/70 backdrop-blur-sm border-blue-200 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-blue-700 flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      {course.title}
-                    </CardTitle>
-                    <CardDescription className="flex items-center gap-4 mt-2">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {new Date(course.createdAt).toLocaleDateString('ko-KR')}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        {Math.floor(Math.random() * 50) + 10}명 탐방
-                      </span>
-                    </CardDescription>
-                  </div>
-                  <Badge variant="outline" className="border-blue-300 text-blue-700">
-                    {CATEGORIES.find(cat => cat.key === course.category)?.emoji} {CATEGORIES.find(cat => cat.key === course.category)?.label}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* 코스 경로 */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <MapPin className="h-4 w-4 text-blue-500" />
-                      <span className="font-medium text-gray-700">코스 경로</span>
+          filteredCourses.map((course) => {
+            const activityComposition = getActivityComposition(course);
+            const isFavorited = favoritedCourses.has(course.id);
+            
+            return (
+              <Card key={course.id} className="bg-white/70 backdrop-blur-sm border-blue-200 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-blue-700 flex items-center gap-2">
+                        <MapPin className="h-5 w-5" />
+                        {course.title}
+                      </CardTitle>
+                      <CardDescription className="flex items-center gap-4 mt-2">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {new Date(course.createdAt).toLocaleDateString('ko-KR')}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-4 w-4" />
+                          {Math.floor(Math.random() * 50) + 10}명 탐방
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Heart className="h-4 w-4 text-pink-500" />
+                          {Math.floor(Math.random() * 20) + 5}개 찜
+                        </span>
+                      </CardDescription>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {course.places.map((place, index) => (
-                        <div key={place.id} className="flex items-center gap-1">
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 rounded-full text-sm font-medium">
-                            <span className="text-xs">{place.emoji}</span>
-                            {place.name}
-                          </span>
-                          {index < course.places.length - 1 && (
-                            <span className="text-blue-400 mx-1">→</span>
-                          )}
+                    <Badge variant="outline" className="border-blue-300 text-blue-700">
+                      {CATEGORIES.find(cat => cat.key === course.category)?.emoji} {CATEGORIES.find(cat => cat.key === course.category)?.label}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* 코스 경로 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <MapPin className="h-4 w-4 text-blue-500" />
+                        <span className="font-medium text-gray-700">코스 경로</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {course.places.map((place, index) => (
+                          <div key={place.id} className="flex items-center gap-1">
+                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 rounded-full text-sm font-medium">
+                              <span className="text-xs">{place.emoji}</span>
+                              {place.name}
+                            </span>
+                            {index < course.places.length - 1 && (
+                              <span className="text-blue-400 mx-1">→</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 활동 구성 비율 */}
+                    {activityComposition.length > 0 && (
+                      <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg p-3">
+                        <div className="text-sm font-medium text-gray-700 mb-2">🎯 활동 구성</div>
+                        <div className="flex flex-wrap gap-2">
+                          {activityComposition.map(({ activity, percentage }) => (
+                            <Badge 
+                              key={activity} 
+                              className={`text-xs ${ACTIVITY_CATEGORIES[activity].color}`}
+                            >
+                              {ACTIVITY_CATEGORIES[activity].emoji} {ACTIVITY_CATEGORIES[activity].label} {percentage}%
+                            </Badge>
+                          ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* 태그 */}
+                    <div className="flex flex-wrap gap-1">
+                      {course.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs bg-gray-100 text-gray-600">
+                          #{tag}
+                        </Badge>
                       ))}
                     </div>
-                  </div>
 
-                  {/* 태그 */}
-                  <div className="flex flex-wrap gap-1">
-                    {course.tags.map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs bg-gray-100 text-gray-600">
-                        #{tag}
-                      </Badge>
-                    ))}
+                    {/* 액션 버튼 */}
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        onClick={() => handleStartCourse(course)}
+                        className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium"
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        이 코스 탐방하기
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => toggleFavorite(course)}
+                        className={`border-pink-300 hover:bg-pink-50 ${
+                          isFavorited 
+                            ? 'text-pink-700 bg-pink-50' 
+                            : 'text-pink-600'
+                        }`}
+                      >
+                        <Heart className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
+                      </Button>
+                    </div>
                   </div>
-
-                  {/* 액션 버튼 */}
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      onClick={() => handleStartCourse(course)}
-                      className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium"
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      이 코스 탐방하기
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                    >
-                      <Heart className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
     </div>

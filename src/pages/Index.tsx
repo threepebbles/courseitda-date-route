@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Heart, Save, Share, Navigation, Plus, Search, Compass } from "lucide-react";
+import { MapPin, Heart, Save, Share, Navigation, Plus, Search, Compass, Bookmark } from "lucide-react";
 import CourseCreation from "@/components/CourseCreation";
 import NavigationMode from "@/components/NavigationMode";
 import SavedCourses from "@/components/SavedCourses";
 import CourseExplorer from "@/components/CourseExplorer";
+import FavoriteCourses from "@/components/FavoriteCourses";
 import { toast } from "@/hooks/use-toast";
 
 export interface Place {
@@ -20,6 +21,10 @@ export interface Place {
   lng: number;
   emoji: string;
   category: string;
+  activityCategory: {
+    main: 'eating' | 'viewing' | 'playing' | 'walking';
+    sub: string;
+  };
 }
 
 export interface Course {
@@ -32,7 +37,37 @@ export interface Course {
   category: 'date' | 'food' | 'tour' | 'workshop' | 'other';
   tags: string[];
   isPublic?: boolean;
+  isFavorited?: boolean;
+  favoriteCount?: number;
 }
+
+// 활동 카테고리 정의
+export const ACTIVITY_CATEGORIES = {
+  eating: {
+    label: '먹는 활동',
+    emoji: '🍽️',
+    color: 'bg-red-100 text-red-700 border-red-300',
+    subcategories: ['밥', '술', '커피', '디저트']
+  },
+  viewing: {
+    label: '보는 활동', 
+    emoji: '🎬',
+    color: 'bg-purple-100 text-purple-700 border-purple-300',
+    subcategories: ['영화', '전시', '공연', '쇼핑']
+  },
+  playing: {
+    label: '노는 활동',
+    emoji: '🕹️', 
+    color: 'bg-green-100 text-green-700 border-green-300',
+    subcategories: ['게임', '방탈출', '실내활동', '실외활동', '힐링']
+  },
+  walking: {
+    label: '걷기 활동',
+    emoji: '🚶',
+    color: 'bg-blue-100 text-blue-700 border-blue-300', 
+    subcategories: ['공원', '테마거리', '야경/풍경', '문화재']
+  }
+};
 
 const Index = () => {
   const [currentTab, setCurrentTab] = useState("create");
@@ -106,7 +141,7 @@ const Index = () => {
 
         {/* Main Tabs */}
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/70 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-4 mb-6 bg-white/70 backdrop-blur-sm">
             <TabsTrigger 
               value="create" 
               className="flex items-center gap-2 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700"
@@ -120,6 +155,13 @@ const Index = () => {
             >
               <Search className="h-4 w-4" />
               코스 탐색
+            </TabsTrigger>
+            <TabsTrigger 
+              value="favorites"
+              className="flex items-center gap-2 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700"
+            >
+              <Bookmark className="h-4 w-4" />
+              찜한 코스
             </TabsTrigger>
             <TabsTrigger 
               value="saved"
@@ -136,6 +178,10 @@ const Index = () => {
           
           <TabsContent value="explore">
             <CourseExplorer onStartNavigation={handleStartNavigation} />
+          </TabsContent>
+          
+          <TabsContent value="favorites">
+            <FavoriteCourses onStartNavigation={handleStartNavigation} />
           </TabsContent>
           
           <TabsContent value="saved">
