@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import { BrowserRouter } from 'react-router-dom';
 
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
+  <BrowserRouter basename="/courseitda-date-route">
     <App />
   </BrowserRouter>
 );
