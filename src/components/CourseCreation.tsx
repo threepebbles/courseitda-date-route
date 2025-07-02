@@ -9,9 +9,59 @@ import { Plus, MapPin, Navigation, Search } from "lucide-react";
 import type { Place, Course } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
 import { ACTIVITY_CATEGORIES, RECOMMENDED_PLACES } from "@/pages/Index";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface CourseCreationProps {
   onStartNavigation: (course: Course) => void;
+}
+
+function DraggablePlace({ place, removePlace, id }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <div className={`flex items-center justify-between p-3 bg-blue-50 rounded-md border border-blue-200 ${isDragging ? 'opacity-50' : ''}`}>
+        <div className="flex items-center gap-3">
+          <span className="text-xl">{place.emoji}</span>
+          <div>
+            <div className="font-medium">{place.name}</div>
+            <div className="text-sm text-gray-600">{place.description}</div>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {place.activityCategory.main.map((cat) => (
+                <Badge
+                  key={cat}
+                  variant="outline"
+                  className={`${ACTIVITY_CATEGORIES[cat].color}`}
+                >
+                  {ACTIVITY_CATEGORIES[cat].emoji} {ACTIVITY_CATEGORIES[cat].label}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => removePlace(place.id)}
+          className="text-red-500 hover:bg-red-100"
+        >
+          삭제
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
@@ -88,6 +138,22 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
     onStartNavigation(newCourse);
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (active && over && active.id !== over.id) {
+      const oldIndex = places.findIndex((p) => p.id === active.id);
+      const newIndex = places.findIndex((p) => p.id === over.id);
+      setPlaces((places) => arrayMove(places, oldIndex, newIndex));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 헤더 */}
@@ -160,6 +226,17 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
                     <div>
                       <div className="font-medium">{place.name}</div>
                       <div className="text-xs text-gray-500 line-clamp-1">{place.description}</div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {place.activityCategory.main.map((cat) => (
+                          <Badge
+                            key={cat}
+                            variant="outline"
+                            className={`${ACTIVITY_CATEGORIES[cat].color}`}
+                          >
+                            {ACTIVITY_CATEGORIES[cat].emoji} {ACTIVITY_CATEGORIES[cat].label}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   </Card>
                 ))}
@@ -181,6 +258,17 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
                       <div>
                         <div className="font-medium">{place.name}</div>
                         <div className="text-xs text-gray-500 line-clamp-1">{place.description}</div>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {place.activityCategory.main.map((cat) => (
+                            <Badge
+                              key={cat}
+                              variant="outline"
+                              className={`${ACTIVITY_CATEGORIES[cat].color}`}
+                            >
+                              {ACTIVITY_CATEGORIES[cat].emoji} {ACTIVITY_CATEGORIES[cat].label}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     </Card>
                   ))}
@@ -192,7 +280,7 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
           )}
 
           {/* 활동 카테고리 선택 (Simplified) */}
-          <div>
+          {/* <div>
             <Label>활동 카테고리</Label>
             <div className="flex flex-wrap gap-2 mt-2">
               {Object.entries(ACTIVITY_CATEGORIES).map(([key, category]) => (
@@ -220,7 +308,7 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
                 </Badge>
               ))}
             </div>
-          </div>
+          </div> */}
           
           {/* <Button 
             onClick={() => {
@@ -261,41 +349,15 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
           {places.length === 0 ? (
             <p className="text-gray-500 text-sm">아직 추가된 장소가 없습니다.</p>
           ) : (
-            <div className="space-y-3">
-              {places.map((place) => (
-                <div
-                  key={place.id}
-                  className="flex items-center justify-between p-3 bg-blue-50 rounded-md border border-blue-200"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{place.emoji}</span>
-                    <div>
-                      <div className="font-medium">{place.name}</div>
-                      <div className="text-sm text-gray-600">{place.description}</div>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {place.activityCategory.main.map((cat) => (
-                          <Badge
-                            key={cat}
-                            variant="outline"
-                            className={`${ACTIVITY_CATEGORIES[cat].color}`}
-                          >
-                            {ACTIVITY_CATEGORIES[cat].emoji} {ACTIVITY_CATEGORIES[cat].label}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removePlace(place.id)}
-                    className="text-red-500 hover:bg-red-100"
-                  >
-                    삭제
-                  </Button>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={places.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-3">
+                  {places.map((place) => (
+                    <DraggablePlace key={place.id} place={place} removePlace={removePlace} id={place.id} />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           )}
         </CardContent>
       </Card>
