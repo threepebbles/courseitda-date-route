@@ -21,9 +21,8 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
   const [newPlaceDescription, setNewPlaceDescription] = useState("");
   const [newPlaceEmoji, setNewPlaceEmoji] = useState("📍");
   const [newPlaceCategory, setNewPlaceCategory] = useState("기타");
-  const [newPlaceActivityCategory, setNewPlaceActivityCategory] = useState<{
-    main: 'eating' | 'viewing' | 'playing' | 'walking';
-  }>({ main: 'eating' });
+  const [newPlaceActivityCategory, setNewPlaceActivityCategory] = useState<
+    Array<'eating' | 'viewing' | 'playing' | 'walking'>>(['eating']);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<Place[]>([]);
 
@@ -46,7 +45,7 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
     setNewPlaceDescription("");
     setNewPlaceEmoji("📍");
     setNewPlaceCategory("기타");
-    setNewPlaceActivityCategory({ main: 'eating' });
+    setNewPlaceActivityCategory(['eating']); // Reset to default
     setSearchTerm("");
     toast({
       title: "✨ 장소가 추가되었습니다!",
@@ -151,7 +150,7 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
             <div className="mt-4">
               <Label className="text-sm text-gray-600 mb-2 block">추천 장소</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {RECOMMENDED_PLACES.map((place) => (
+                {RECOMMENDED_PLACES.slice(0, 6).map((place) => (
                   <Card 
                     key={place.id} 
                     className="p-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
@@ -199,15 +198,21 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
               {Object.entries(ACTIVITY_CATEGORIES).map(([key, category]) => (
                 <Badge
                   key={key}
-                  variant={newPlaceActivityCategory.main === key ? "default" : "outline"}
+                  variant={newPlaceActivityCategory.includes(key as any) ? "default" : "outline"}
                   className={`cursor-pointer hover:bg-opacity-80 ${
-                    newPlaceActivityCategory.main === key 
+                    newPlaceActivityCategory.includes(key as any)
                       ? category.color.replace('bg-', 'bg-').replace('text-', 'text-').replace('border-', 'border-')
                       : 'border-gray-300 text-gray-700 hover:bg-gray-100'
                   }`}
                   onClick={() => {
                     const mainCategory = key as 'eating' | 'viewing' | 'playing' | 'walking';
-                    setNewPlaceActivityCategory({ main: mainCategory });
+                    setNewPlaceActivityCategory(prevCategories => {
+                      if (prevCategories.includes(mainCategory)) {
+                        return prevCategories.filter(cat => cat !== mainCategory);
+                      } else {
+                        return [...prevCategories, mainCategory];
+                      }
+                    });
                   }}
                 >
                   <span className="mr-1">{category.emoji}</span>
@@ -217,7 +222,7 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
             </div>
           </div>
           
-          <Button 
+          {/* <Button 
             onClick={() => {
               if (searchResults.length > 0 && searchTerm.trim() !== "") {
                 addPlace(searchResults[0]);
@@ -237,7 +242,7 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
           >
             <Plus className="h-4 w-4 mr-2" />
             선택한 장소 추가하기
-          </Button>
+          </Button> */}
         </CardContent>
       </Card>
 
@@ -267,12 +272,17 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
                     <div>
                       <div className="font-medium">{place.name}</div>
                       <div className="text-sm text-gray-600">{place.description}</div>
-                      <Badge
-                        variant="outline"
-                        className={`${ACTIVITY_CATEGORIES[place.activityCategory.main].color}`}
-                      >
-                        {ACTIVITY_CATEGORIES[place.activityCategory.main].emoji} {ACTIVITY_CATEGORIES[place.activityCategory.main].label}
-                      </Badge>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {place.activityCategory.main.map((cat) => (
+                          <Badge
+                            key={cat}
+                            variant="outline"
+                            className={`${ACTIVITY_CATEGORIES[cat].color}`}
+                          >
+                            {ACTIVITY_CATEGORIES[cat].emoji} {ACTIVITY_CATEGORIES[cat].label}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <Button
