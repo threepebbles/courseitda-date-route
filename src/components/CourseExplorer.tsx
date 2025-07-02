@@ -22,6 +22,55 @@ const CATEGORIES = [
   { key: 'other', label: '기타', emoji: '💡' },
 ];
 
+// 초기 코스 데이터를 컴포넌트 외부로 이동
+const INITIAL_COURSES: Course[] = [
+  {
+    id: "rec-1",
+    title: "성수동 힙한 데이트 코스",
+    places: [
+      getPlaceByName('팀랩 몰입형 미디어아트 전시관'),
+      getPlaceByName('젠틀몬스터 플래그십스토어 가로수길'),
+      getPlaceByName('블루보틀 삼청점'),
+    ].filter(Boolean) as Place[],
+    createdAt: new Date('2024-01-15'),
+    completed: true,
+    category: 'date',
+    tags: ['힙한', '성수동', '야경', '데이트'],
+    isPublic: true,
+    favoriteCount: 0,
+  },
+  {
+    id: "rec-2",
+    title: "홍대 맛집 탐방 코스",
+    places: [
+      getPlaceByName('쉐이크쉑 강남점'),
+      getPlaceByName('스타벅스 더종로점'),
+      getPlaceByName('방탈출 카페 코드케이 강남점'),
+    ].filter(Boolean) as Place[],
+    createdAt: new Date('2024-01-20'),
+    completed: true,
+    category: 'food',
+    tags: ['맛집', '홍대', '파티', '친구'],
+    isPublic: true,
+    favoriteCount: 0,
+  },
+  {
+    id: "rec-3",
+    title: "북촌한옥마을 문화 탐방",
+    places: [
+      getPlaceByName('국립현대미술관 서울관'),
+      getPlaceByName('아크앤북 시청점'),
+      getPlaceByName('호텔 델루나 세트장 (익선동)'),
+    ].filter(Boolean) as Place[],
+    createdAt: new Date('2024-01-25'),
+    completed: true,
+    category: 'tour',
+    tags: ['문화', '전통', '한옥', '관광'],
+    isPublic: true,
+    favoriteCount: 0,
+  }
+];
+
 interface CourseExplorerProps {
   onStartNavigation: (course: Course) => void;
 }
@@ -29,50 +78,7 @@ interface CourseExplorerProps {
 const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [courses, setCourses] = useState<Course[]>([
-    {
-      id: "rec-1",
-      title: "성수동 힙한 데이트 코스",
-      places: [
-        getPlaceByName('팀랩 몰입형 미디어아트 전시관'),
-        getPlaceByName('젠틀몬스터 플래그십스토어 가로수길'),
-        getPlaceByName('블루보틀 삼청점'),
-      ].filter(Boolean) as Place[],
-      createdAt: new Date('2024-01-15'),
-      completed: true,
-      category: 'date',
-      tags: ['힙한', '성수동', '야경', '데이트'],
-      isPublic: true
-    },
-    {
-      id: "rec-2",
-      title: "홍대 맛집 탐방 코스",
-      places: [
-        getPlaceByName('쉐이크쉑 강남점'),
-        getPlaceByName('스타벅스 더종로점'),
-        getPlaceByName('방탈출 카페 코드케이 강남점'),
-      ].filter(Boolean) as Place[],
-      createdAt: new Date('2024-01-20'),
-      completed: true,
-      category: 'food',
-      tags: ['맛집', '홍대', '파티', '친구'],
-      isPublic: true
-    },
-    {
-      id: "rec-3",
-      title: "북촌한옥마을 문화 탐방",
-      places: [
-        getPlaceByName('국립현대미술관 서울관'),
-        getPlaceByName('아크앤북 시청점'),
-        getPlaceByName('호텔 델루나 세트장 (익선동)'),
-      ].filter(Boolean) as Place[],
-      createdAt: new Date('2024-01-25'),
-      completed: true,
-      category: 'tour',
-      tags: ['문화', '전통', '한옥', '관광'],
-      isPublic: true
-    }
-  ]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [communityCourses, setCommunityCourses] = useState<Course[]>([]);
   const [favoritedCourses, setFavoritedCourses] = useState<Set<string>>(new Set());
 
@@ -82,9 +88,17 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
     const favoriteIds = new Set<string>(favorites.map((course: Course) => course.id));
     setFavoritedCourses(favoriteIds);
 
-    // 기존 추천 코스는 그대로, communityCourses는 localStorage에서 불러와 합침
+    // Load courses from localStorage or use initial courses
+    const storedCourses = JSON.parse(localStorage.getItem('appCourses') || '[]');
+    if (storedCourses.length > 0) {
+      setCourses(storedCourses.map((course: Course) => ({ ...course, favoriteCount: course.favoriteCount || 0 })));
+    } else {
+      setCourses(INITIAL_COURSES);
+    }
+
+    // Load community courses from localStorage
     const community = JSON.parse(localStorage.getItem('communityCourses') || '[]');
-    setCommunityCourses(community);
+    setCommunityCourses(community.map((course: Course) => ({ ...course, favoriteCount: course.favoriteCount || 0 })));
   }, []);
 
   const allCourses = [...courses, ...communityCourses];
@@ -107,6 +121,23 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
     onStartNavigation(newCourse);
   };
 
+  const updateCourseFavoriteCount = (courseId: string, increment: number) => {
+    setCourses(prevCourses => {
+      const updatedCourses = prevCourses.map(c =>
+        c.id === courseId ? { ...c, favoriteCount: Math.max(0, (c.favoriteCount || 0) + increment) } : c
+      );
+      localStorage.setItem('appCourses', JSON.stringify(updatedCourses));
+      return updatedCourses;
+    });
+    setCommunityCourses(prevCommunityCourses => {
+      const updatedCommunityCourses = prevCommunityCourses.map(c =>
+        c.id === courseId ? { ...c, favoriteCount: Math.max(0, (c.favoriteCount || 0) + increment) } : c
+      );
+      localStorage.setItem('communityCourses', JSON.stringify(updatedCommunityCourses));
+      return updatedCommunityCourses;
+    });
+  };
+
   const toggleFavorite = (course: Course) => {
     const favorites = JSON.parse(localStorage.getItem('favoriteCourses') || '[]');
     const isCurrentlyFavorited = favoritedCourses.has(course.id);
@@ -120,6 +151,7 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
         newSet.delete(course.id);
         return newSet;
       });
+      updateCourseFavoriteCount(course.id, -1); // Decrement count
       toast({
         title: "💔 찜 해제",
         description: `${course.title}을(를) 찜 목록에서 제거했습니다.`,
@@ -134,6 +166,7 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
       favorites.push(courseWithFavoriteInfo);
       localStorage.setItem('favoriteCourses', JSON.stringify(favorites));
       setFavoritedCourses(prev => new Set([...prev, course.id]));
+      updateCourseFavoriteCount(course.id, 1); // Increment count
       toast({
         title: "💕 찜 완료!",
         description: `${course.title}을(를) 찜 목록에 추가했습니다.`,
@@ -252,12 +285,8 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
                           {new Date(course.createdAt).toLocaleDateString('ko-KR')}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          {Math.floor(Math.random() * 50) + 10}명 탐방
-                        </span>
-                        <span className="flex items-center gap-1">
                           <Heart className="h-4 w-4 text-pink-500" />
-                          {Math.floor(Math.random() * 20) + 5}개 찜
+                          {course.favoriteCount || 0}개 찜
                         </span>
                       </CardDescription>
                     </div>
