@@ -73,7 +73,11 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
   }, [searchTerm]);
 
   const addPlace = (place: Place) => {
-    setPlaces([...places, place]);
+    const newUniquePlace = {
+      ...place,
+      id: `${place.id}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+    };
+    setPlaces([...places, newUniquePlace]);
     setNewPlaceName("");
     setNewPlaceDescription("");
     setNewPlaceEmoji("📍");
