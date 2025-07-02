@@ -13,6 +13,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Dialog as AlertDialog, DialogContent as AlertDialogContent, DialogHeader as AlertDialogHeader, DialogTitle as AlertDialogTitle, DialogDescription as AlertDialogDescription, DialogTrigger as AlertDialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 const CATEGORIES = [
   { key: 'date', label: '데이트', emoji: '💕' },
@@ -30,6 +32,9 @@ const SavedCourses = ({ onStartNavigation }: SavedCoursesProps) => {
   const [savedCourses, setSavedCourses] = useState<Course[]>([]);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [tagInputs, setTagInputs] = useState<{ [courseId: string]: string }>({});
+  const [communityDialogOpen, setCommunityDialogOpen] = useState(false);
+  const [communityCourse, setCommunityCourse] = useState<Course | null>(null);
 
   useEffect(() => {
     loadSavedCourses();
@@ -85,6 +90,49 @@ const SavedCourses = ({ onStartNavigation }: SavedCoursesProps) => {
       }
       setShareDialogOpen(false);
     }
+  };
+
+  // 커뮤니티에 공유 함수
+  const handleCommunityShare = (course: Course) => {
+    setCommunityCourse(course);
+    setCommunityDialogOpen(true);
+  };
+
+  const confirmCommunityShare = () => {
+    if (!communityCourse) return;
+    // 기존 communityCourses 불러오기
+    const communityCourses = JSON.parse(localStorage.getItem('communityCourses') || '[]');
+    // 중복 업로드 방지 (id 기준)
+    if (communityCourses.some((c: Course) => c.id === communityCourse.id)) {
+      toast({ title: '이미 업로드된 코스입니다.', description: '이 코스는 이미 커뮤니티에 공유되었습니다.' });
+      setCommunityDialogOpen(false);
+      return;
+    }
+    communityCourses.push(communityCourse);
+    localStorage.setItem('communityCourses', JSON.stringify(communityCourses));
+    toast({ title: '커뮤니티에 공유 완료!', description: '코스가 커뮤니티에 업로드되었습니다.' });
+    setCommunityDialogOpen(false);
+  };
+
+  // 태그 추가 함수
+  const addTagToCourse = (courseId: string) => {
+    const tag = (tagInputs[courseId] || '').trim();
+    if (!tag) return;
+    setSavedCourses(prev => {
+      const updated = prev.map(course => {
+        if (course.id === courseId) {
+          // 중복 방지
+          if (course.tags.includes(tag)) return course;
+          const newTags = [...course.tags, tag];
+          const updatedCourse = { ...course, tags: newTags };
+          return updatedCourse;
+        }
+        return course;
+      });
+      localStorage.setItem('savedCourses', JSON.stringify(updated));
+      return updated;
+    });
+    setTagInputs(prev => ({ ...prev, [courseId]: '' }));
   };
 
   if (savedCourses.length === 0) {
@@ -194,7 +242,7 @@ const SavedCourses = ({ onStartNavigation }: SavedCoursesProps) => {
 
                 {/* 태그 */}
                 {course.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 mb-1">
                     {course.tags.map((tag, index) => (
                       <Badge key={index} variant="secondary" className="text-xs bg-gray-100 text-gray-600">
                         #{tag}
@@ -202,6 +250,26 @@ const SavedCourses = ({ onStartNavigation }: SavedCoursesProps) => {
                     ))}
                   </div>
                 )}
+                {/* 해시태그 추가 입력 */}
+                <div className="flex gap-2 items-center mb-2">
+                  <Input
+                    value={tagInputs[course.id] || ''}
+                    onChange={e => setTagInputs(prev => ({ ...prev, [course.id]: e.target.value }))}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') addTagToCourse(course.id);
+                    }}
+                    placeholder="해시태그 입력 후 Enter 또는 추가"
+                    className="w-40 text-xs"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => addTagToCourse(course.id)}
+                  >
+                    추가
+                  </Button>
+                </div>
 
                 {/* 메모 */}
                 {course.memo && (
@@ -231,13 +299,22 @@ const SavedCourses = ({ onStartNavigation }: SavedCoursesProps) => {
                 </div>
 
                 {/* 액션 버튼 */}
-                <Button
-                  onClick={() => onStartNavigation({...course, id: Date.now().toString()})}
-                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium"
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  이 코스 다시 탐방하기 🧭
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    onClick={() => onStartNavigation({...course, id: Date.now().toString()})}
+                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium"
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    이 코스 다시 탐방하기 🧭
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full text-blue-700 border-blue-300"
+                    onClick={() => handleCommunityShare(course)}
+                  >
+                    커뮤니티에 공유
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -280,6 +357,22 @@ const SavedCourses = ({ onStartNavigation }: SavedCoursesProps) => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* 커뮤니티 공유 다이얼로그 */}
+      <AlertDialog open={communityDialogOpen} onOpenChange={setCommunityDialogOpen}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-blue-700">커뮤니티에 공유하기</AlertDialogTitle>
+            <AlertDialogDescription>
+              이 코스를 커뮤니티에 공유하시겠습니까?<br />공유 후에는 코스 탐색 탭에서 확인할 수 있습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2 mt-4">
+            <Button onClick={confirmCommunityShare} className="bg-blue-600 text-white w-full">커뮤니티에 공유</Button>
+            <Button variant="outline" onClick={() => setCommunityDialogOpen(false)} className="w-full">취소</Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

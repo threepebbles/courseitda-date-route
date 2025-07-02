@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Heart, Play, Users, Clock, Bookmark } from "lucide-react";
+import { Search, MapPin, Heart, Play, Users, Clock, Bookmark, Calendar, Save } from "lucide-react";
 import type { Course, Place } from "@/pages/Index";
 import { ACTIVITY_CATEGORIES, RECOMMENDED_PLACES } from "@/pages/Index";
 import { toast } from "@/hooks/use-toast";
@@ -73,6 +73,7 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
       isPublic: true
     }
   ]);
+  const [communityCourses, setCommunityCourses] = useState<Course[]>([]);
   const [favoritedCourses, setFavoritedCourses] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -80,9 +81,14 @@ const CourseExplorer = ({ onStartNavigation }: CourseExplorerProps) => {
     const favorites = JSON.parse(localStorage.getItem('favoriteCourses') || '[]');
     const favoriteIds = new Set<string>(favorites.map((course: Course) => course.id));
     setFavoritedCourses(favoriteIds);
+
+    // 기존 추천 코스는 그대로, communityCourses는 localStorage에서 불러와 합침
+    const community = JSON.parse(localStorage.getItem('communityCourses') || '[]');
+    setCommunityCourses(community);
   }, []);
 
-  const filteredCourses = courses.filter(course => {
+  const allCourses = [...courses, ...communityCourses];
+  const filteredCourses = allCourses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          course.places.some(place => place.name.toLowerCase().includes(searchTerm.toLowerCase()));
