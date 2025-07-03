@@ -207,7 +207,7 @@ const CourseCreation = ({ onStartNavigation }: CourseCreationProps) => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="장소 이름을 검색해보세요 (예: 남산타워)"
+              placeholder="장소 이름을 검색해보세요 (예: 강남)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 border-blue-200 focus:border-blue-400"
